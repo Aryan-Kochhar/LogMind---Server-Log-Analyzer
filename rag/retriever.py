@@ -27,7 +27,7 @@ def retrieve(query, top_k=3):
     logs = list(results)
     
     query_lower = query.lower()
-    if any(word in query_lower for word in ["error", "fail", "warn", "problem", "issue"]):
+    if any(word in query_lower for word in ["error", "fail", "warn", "problem", "issue", "least", "most", "common", "frequent", "top"]):
         filtered = [l for l in logs if l["level"] in ["ERROR", "WARN"]]
         if filtered:
             return filtered[:top_k]

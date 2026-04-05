@@ -1,6 +1,9 @@
 # LogMind - AI Server Log Analyzer
 
 ## What is this?
+
+![LogMind Demo](assets/demo.png)
+
 LogMind lets you chat with your server logs — load any log file and ask questions in plain English. It can summarize your logs, find the most common errors, search by keyword or error type, detect anomalies, and export filtered results to CSV.
 
 ---
@@ -133,7 +136,6 @@ python cli.py
 ---
 
 ## Example Queries
-![LogMind Demo](assets/demo.png)
 ```
 stats
 count 404

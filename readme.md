@@ -133,6 +133,7 @@ python cli.py
 ---
 
 ## Example Queries
+![LogMind Demo](assets/demo.png)
 ```
 stats
 count 404

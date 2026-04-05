@@ -1,0 +1,4 @@
+timestamp,level,message
+18/May/2015:03:05:34,ERROR,GET /misc/Title.php.txt HTTP/1.1 - 500
+18/May/2015:15:05:42,ERROR,GET /misc/Title.php.txt HTTP/1.1 - 500
+20/May/2015:14:05:16,ERROR,OPTIONS /projects/xdotool/ HTTP/1.1 - 500

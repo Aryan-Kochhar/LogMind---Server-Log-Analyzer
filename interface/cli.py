@@ -35,7 +35,7 @@ def main():
     else:
         print("No anomalies detected.")
     
-    print("Hi! I'm the goated chat, ask me anything dipshit!")
+    print("Hi! Here to help, ask me anything!")
     print("Commands for yours truly: 'search <keyword>' or just ask a question. Type 'exit' to quit.\n")
     
     while True:

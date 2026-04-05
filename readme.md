@@ -58,8 +58,8 @@ Server Log Analyzer/
 
 **1. Clone the repo**
 ```bash
-git clone https://github.com/Aryan-Kochhar/logmind.git
-cd logmind
+git clone https://github.com/Aryan-Kochhar/LogMind---Server-Log-Analyzer.git
+cd LogMind---Server-Log-Analyzer
 ```
 
 **2. Create and activate a virtual environment**

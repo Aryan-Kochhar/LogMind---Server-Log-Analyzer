@@ -6,6 +6,10 @@
 
 LogMind lets you chat with your server logs — load any log file and ask questions in plain English. It can summarize your logs, find the most common errors, search by keyword or error type, detect anomalies, and export filtered results to CSV.
 
+![LogMind Streamlit 1](assets/Streamlit1.png)
+![LogMind Streamlit 2](assets/Streamlit2.png)
+![LogMind Streamlit 3](assets/Streamlit3.png)
+
 ---
 
 ## Tech Stack
@@ -16,7 +20,7 @@ LogMind lets you chat with your server logs — load any log file and ask questi
 | Vector Storage | MongoDB Atlas (Vector Search) |
 | LLM | Ollama — any local model (tested with DeepSeek R1:14b, Qwen2.5:14b) |
 | LLM Interface | litellm (model-agnostic) |
-| Interface | CLI |
+| Interface | CLI + Streamlit |
 
 ---
 

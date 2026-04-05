@@ -2,9 +2,11 @@
 
 ## What is this?
 
-![LogMind Demo](assets/demo.png)
 
 LogMind lets you chat with your server logs — load any log file and ask questions in plain English. It can summarize your logs, find the most common errors, search by keyword or error type, detect anomalies, and export filtered results to CSV.
+
+
+![LogMind Demo](assets/demo.png)
 
 ![LogMind Streamlit 1](assets/Streamlit1.png)
 ![LogMind Streamlit 2](assets/Streamlit2.png)
@@ -110,6 +112,12 @@ ollama serve
 ```bash
 cd interface
 python cli.py
+```
+
+**8. Run the Streamlit UI**
+```
+cd interface
+streamlit run app.py
 ```
 
 ---

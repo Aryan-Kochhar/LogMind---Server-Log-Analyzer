@@ -11,7 +11,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'search'))
 from mongo_store import store_logs, collection
 from retriever import retrieve
 from llm_client import ask_llm
-from keyword_search import search
+from keyword_search import search, is_aggregate, top_errors
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'parser'))
 from log_parser import parse_file
@@ -51,12 +51,7 @@ if uploaded_file:
     
     if errors > 0:
         st.subheader("🔥 Top Errors")
-        counts = {}
-        for log in logs:
-            if log["level"] in ["ERROR", "WARN"]:
-                counts[log["message"]] = counts.get(log["message"], 0) + 1
-        sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:5]
-        for msg, count in sorted_counts:
+        for msg, count in top_errors(logs):
             st.write(f"`{count}x` — {msg}")
     
     # Anomaly Detection
@@ -122,9 +117,19 @@ if uploaded_file:
         
         # get answer
         with st.chat_message("assistant"):
-            with st.spinner("Thinking..."):
-                context = retrieve(user_input)
-                answer = ask_llm(user_input, context)
+            if is_aggregate(user_input):
+                ranked = top_errors(logs)
+                answer = "\n\n".join(f"`{c}x` — {m}" for m, c in ranked)
+                if not answer:
+                    answer = "No errors or warnings found."
                 st.write(answer)
+            else:
+                with st.spinner("Thinking..."):
+                    try:
+                        context = retrieve(user_input)
+                        answer = ask_llm(user_input, context)
+                    except RuntimeError as e:
+                        answer = f"Search unavailable: {e}"
+                    st.write(answer)
         st.session_state.messages.append({"role": "assistant", "content": answer})
         

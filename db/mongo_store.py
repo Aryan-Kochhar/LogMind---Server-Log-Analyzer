@@ -4,7 +4,7 @@ from pymongo import MongoClient
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'embeddings'))
-from embedder import embed_text
+from embedder import embed_text, embed_texts
 
 load_dotenv()
 uri = os.getenv("MONGODB_URI")
@@ -21,9 +21,12 @@ collection = db["logs"]
 
 def store_logs(logs):
     collection.delete_many({})  # clear old logs on each run
-    for log in logs:
-        log["embedding"] = embed_text(log["message"])
-        collection.insert_one(log)
+    if not logs:
+        return
+    embeddings = embed_texts([log["message"] for log in logs])
+    for log, embedding in zip(logs, embeddings):
+        log["embedding"] = embedding
+    collection.insert_many(logs)
     print(f"Stored {len(logs)} logs in MongoDB")
 
 if __name__ == "__main__":

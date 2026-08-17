@@ -12,24 +12,26 @@ WINDOW_SIZE = 10
 ERROR_THRESHOLD = 3
 
 def detect_anomalies(logs):
-    anomalies = []
-    
+    flagged = set()
+
     # Check critical keywords
-    for log in logs:
+    for i, log in enumerate(logs):
+        message = log["message"].lower()
         for keyword in CRITICAL_KEYWORDS:
-            if keyword in log["message"].lower():
-                anomalies.append(log)
-    
+            if keyword in message:
+                flagged.add(i)
+                break
+
     # Sliding window error spike detection
     for i in range(len(logs)):
         window = logs[i:i+WINDOW_SIZE]
-        error_count = len([log for log in logs if log["level"]== "ERROR"])
+        error_count = len([log for log in window if log["level"] == "ERROR"])
         if error_count > ERROR_THRESHOLD:
-            for l in window:
-                if l["level"] == "ERROR" and l not in anomalies:
-                    anomalies.append(l)
-    
-    return anomalies
+            for j, log in enumerate(window):
+                if log["level"] == "ERROR":
+                    flagged.add(i + j)
+
+    return [logs[i] for i in sorted(flagged)]
 
 if __name__ == "__main__":
     logs = parse_file(filepath)

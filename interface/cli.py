@@ -11,9 +11,17 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'llm'))
 from log_parser import parse_file
 from mongo_store import store_logs
 from retriever import retrieve
-from keyword_search import search
+from keyword_search import search, is_aggregate, top_errors
 from anomaly import detect_anomalies
 from llm_client import ask_llm
+
+def print_top_errors(logs):
+    ranked = top_errors(logs)
+    if not ranked:
+        print("No errors or warnings found.")
+        return
+    for message, count in ranked:
+        print(f"{count}x - {message}")
 
 def main():
     print("Helooo I'm LogMind CLI!")
@@ -74,15 +82,7 @@ def main():
                 answer = ask_llm(f"Summarize what happened on {date}", day_logs[:20])
                 print(f"\nWatashiwa thinks that: {answer}\n")
         elif user_input.lower().startswith("top errors"):
-            counts = {}
-            for log in logs:
-                if log['level'] in ["ERROR","WARN"]:
-                    counts[log["message"]] = counts.get(log["message"], 0) + 1
-            # sorting count in desc
-            sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
-            # print top 5
-            for message, count in sorted_counts[:5]:
-                print(f"{count}x - {message}")
+            print_top_errors(logs)
         elif user_input.lower() == "debug":
             print(logs[0])
             errors = [l for l in logs if l["level"] == "WARN"]
@@ -104,8 +104,15 @@ def main():
                 clean_logs = [{"timestamp": l["timestamp"], "level": l["level"], "message": l["message"]} for l in filtered]
                 writer.writerows(clean_logs)
             print(f"Exported {len(filtered)} logs to {filename}")
+        elif is_aggregate(user_input):
+            print("That's a counting question, so here are the actual counts:")
+            print_top_errors(logs)
         else:
-            context = retrieve(user_input)
+            try:
+                context = retrieve(user_input)
+            except RuntimeError as e:
+                print(f"Search unavailable: {e}\n")
+                continue
             answer = ask_llm(user_input,context)
             print(f"Watashiwa thinks that: {answer}\n")
 

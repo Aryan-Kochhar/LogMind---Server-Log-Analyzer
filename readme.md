@@ -119,6 +119,8 @@ cd interface
 python cli.py
 ```
 
+When it asks for a log file, `logs/apachelogs.log` works whether you are in the project root or in `interface/` — a path that is not found relative to your current directory is retried against the project root. Absolute paths work too.
+
 **8. Run the Streamlit UI**
 ```
 cd interface

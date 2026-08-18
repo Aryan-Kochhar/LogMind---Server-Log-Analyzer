@@ -15,6 +15,18 @@ from keyword_search import search, is_aggregate, wants_rarest, top_errors
 from anomaly import detect_anomalies
 from llm_client import ask_llm
 
+def resolve_log_path(path):
+    # the README has you run this from interface/, so a path like
+    # logs/apachelogs.log reads as relative to the project root, not to the
+    # working directory - try both before giving up
+    path = path.strip().strip('"')
+    if os.path.exists(path):
+        return path
+    from_root = os.path.join(os.path.dirname(__file__), "..", path)
+    if os.path.exists(from_root):
+        return os.path.abspath(from_root)
+    return path
+
 def print_top_errors(logs, rarest=False):
     ranked = top_errors(logs, rarest=rarest)
     if not ranked:
@@ -26,7 +38,10 @@ def print_top_errors(logs, rarest=False):
 def main():
     print("Helooo I'm LogMind CLI!")
     
-    filepath = input("Enter path to the log file: ")
+    filepath = resolve_log_path(input("Enter path to the log file: "))
+    if not os.path.exists(filepath):
+        print(f"No log file at {filepath}")
+        return
     print("Parsing the logs...")
     logs = parse_file(filepath)
     print(f"Loaded {len(logs)} log entries")

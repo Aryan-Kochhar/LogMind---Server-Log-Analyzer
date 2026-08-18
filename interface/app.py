@@ -8,10 +8,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'llm'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'search'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'search'))
 
-from mongo_store import store_logs, collection
+from mongo_store import store_logs, already_stored
 from retriever import retrieve
 from llm_client import ask_llm
-from keyword_search import search, is_aggregate, top_errors
+from keyword_search import search, is_aggregate, wants_rarest, top_errors
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'parser'))
 from log_parser import parse_file
@@ -31,9 +31,8 @@ if uploaded_file:
     
     logs = parse_file(temp_path)
     with st.spinner("Storing embeddings in MongoDB..."):
-        count = collection.count_documents({})
-        if count == 0:
-            store_logs(logs)
+        if not already_stored(temp_path):
+            store_logs(logs, temp_path)
     st.success(f"✅ Loaded {len(logs)} log entries")
     
     st.subheader("📊 Log Statistics")
@@ -118,7 +117,7 @@ if uploaded_file:
         # get answer
         with st.chat_message("assistant"):
             if is_aggregate(user_input):
-                ranked = top_errors(logs)
+                ranked = top_errors(logs, rarest=wants_rarest(user_input))
                 answer = "\n\n".join(f"`{c}x` — {m}" for m, c in ranked)
                 if not answer:
                     answer = "No errors or warnings found."

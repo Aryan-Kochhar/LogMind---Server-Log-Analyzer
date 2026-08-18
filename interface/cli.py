@@ -9,14 +9,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'search'))
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'llm'))
 
 from log_parser import parse_file
-from mongo_store import store_logs
+from mongo_store import store_logs, already_stored
 from retriever import retrieve
-from keyword_search import search, is_aggregate, top_errors
+from keyword_search import search, is_aggregate, wants_rarest, top_errors
 from anomaly import detect_anomalies
 from llm_client import ask_llm
 
-def print_top_errors(logs):
-    ranked = top_errors(logs)
+def print_top_errors(logs, rarest=False):
+    ranked = top_errors(logs, rarest=rarest)
     if not ranked:
         print("No errors or warnings found.")
         return
@@ -31,8 +31,11 @@ def main():
     logs = parse_file(filepath)
     print(f"Loaded {len(logs)} log entries")
     
-    print("Storing embeddings in MongoDB")
-    store_logs(logs)
+    if already_stored(filepath):
+        print("Reusing embeddings already in MongoDB for this file")
+    else:
+        print("Storing embeddings in MongoDB...")
+        store_logs(logs, filepath)
     
     print("\nRunning anomaly detection...")
     anomalies = detect_anomalies(logs)
@@ -106,7 +109,7 @@ def main():
             print(f"Exported {len(filtered)} logs to {filename}")
         elif is_aggregate(user_input):
             print("That's a counting question, so here are the actual counts:")
-            print_top_errors(logs)
+            print_top_errors(logs, rarest=wants_rarest(user_input))
         else:
             try:
                 context = retrieve(user_input)

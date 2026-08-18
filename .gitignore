@@ -2,4 +2,12 @@
 __pycache__/
 *.pyc
 env/
-logs/
+
+# ignore log files people analyse with this, but ship the two samples the
+# README and the benchmarks refer to
+logs/*
+!logs/sample.log
+!logs/apachelogs.log
+
+# the Streamlit uploader writes the uploaded file next to app.py
+interface/temp_*

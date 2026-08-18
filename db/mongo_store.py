@@ -1,6 +1,8 @@
 from dotenv import load_dotenv
 import os
+import time
 from pymongo import MongoClient
+from pymongo.errors import AutoReconnect
 import sys
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'embeddings'))
@@ -20,6 +22,16 @@ db = client["log_analyzer"]
 collection = db["logs"]
 
 INSERT_BATCH = 1000
+WRITE_RETRIES = 3
+RETRY_WAIT = 2
+
+def write_all(logs):
+    # every attempt starts from an empty collection, so a retry cannot leave
+    # duplicates. one insert_many for 10k embeddings is also ~30MB on the wire,
+    # long enough for the TLS connection to drop, so send it in chunks
+    collection.delete_many({})
+    for i in range(0, len(logs), INSERT_BATCH):
+        collection.insert_many(logs[i:i + INSERT_BATCH])
 
 def store_logs(logs, source=None):
     collection.delete_many({})  # clear old logs on each run
@@ -32,17 +44,19 @@ def store_logs(logs, source=None):
         log["embedding"] = embedding
         log["source"] = source
 
-    # one insert_many for 10k embeddings is ~30MB on the wire and long enough
-    # for the TLS connection to drop halfway, so send it in chunks
-    try:
-        for i in range(0, len(logs), INSERT_BATCH):
-            collection.insert_many(logs[i:i + INSERT_BATCH])
-    except Exception:
-        # a half-written collection still looks complete to already_stored(),
-        # so clear it and let the next run re-ingest from scratch
-        collection.delete_many({})
-        raise
-    print(f"Stored {len(logs)} logs in MongoDB")
+    for attempt in range(1, WRITE_RETRIES + 1):
+        try:
+            write_all(logs)
+            print(f"Stored {len(logs)} logs in MongoDB")
+            return
+        except AutoReconnect as e:
+            print(f"Write failed (attempt {attempt} of {WRITE_RETRIES}): {e}")
+            if attempt == WRITE_RETRIES:
+                # a half-written collection still looks complete to
+                # already_stored(), so clear it rather than leave it partial
+                collection.delete_many({})
+                raise
+            time.sleep(RETRY_WAIT)
 
 def already_stored(source):
     # the collection holds one file at a time, so checking the row count alone
